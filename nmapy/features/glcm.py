@@ -5,7 +5,7 @@ import numpy as np
 from osgeo import gdal
 from osgeo import osr
 
-from .. import utilities
+from ..utilities.stats import *
 
 MAX_SCALE = 150
 
@@ -25,6 +25,9 @@ def glcm_feature(image_name, block, scale, output=None, prop=None, stat=None):
     """
     ds = gdal.Open(image_name)
     image = ds.ReadAsArray()
+    # FIXME: need a better fix for this.
+    if len(image) >= 3:
+        image = image[:3]
     geotran = ds.GetGeoTransform()
     ulx = geotran[0]
     uly = geotran[3]

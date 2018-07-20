@@ -4,7 +4,7 @@ from osgeo import gdal
 from osgeo import osr
 from skimage.morphology import erosion, dilation, opening, closing, white_tophat
 
-from .. import utilities
+from ..utilities.stats import *
 
 MAX_SCALE = 150
 
