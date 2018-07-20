@@ -1,7 +1,12 @@
-import numpy as np
-import gdal
 
-from . import utilities
+import numpy as np
+from osgeo import gdal
+from osgeo import osr
+from skimage.morphology import erosion, dilation, opening, closing, white_tophat
+
+from .. import utilities
+
+MAX_SCALE = 150
 
 def get_se_set(sizes):
     """
@@ -33,6 +38,8 @@ def get_se_set(sizes):
     return se_set
 
 def MBI_feature(image_name, postprocess=True):
+    MBI_THRESHOLD = 5.5
+    
     ds = gdal.Open(image_name)
     image = ds.ReadAsArray()
     ds = None
@@ -52,15 +59,16 @@ def MBI_feature(image_name, postprocess=True):
         for k in s: # for each direction kernel in the structural element set for this size
             # directional top hat transformation using linear SE
             w_tophats.append(white_tophat(brightness, k))
-        mean_w_tophat = utilities.calc_stat(w_tophats, 'mean', 0)
+        mean_w_tophat = calc_stat(w_tophats, 'mean', 0)
         mean_w_tophats.append(mean_w_tophat)
     
     th_dmp = []
     th_idx = 0
+    # calculate the differential morphological profile
     while th_idx + 1 < len(mean_w_tophats):
         th_dmp.append(np.absolute(mean_w_tophats[th_idx + 1] - mean_w_tophats[th_idx]))
         th_idx+=1
-    mbi = utilities.calc_stat(np.array(th_dmp), 'mean', 0)
+    mbi = calc_stat(np.array(th_dmp), 'mean', 0)
     if postprocess:
-        mbi = np.where(mbi >= 50, 1, 0)
-    return mbi, np.array(th_dmp), np.array(mean_w_tophats) 
+        mbi = np.where(mbi >= MBI_THRESHOLD, 1, 0)
+    return mbi
