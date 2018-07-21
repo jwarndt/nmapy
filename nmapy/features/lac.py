@@ -1,9 +1,15 @@
 import math
 
+from osgeo import gdal
+from osgeo import osr
+import skimage
+from skimage.color import rgb2gray
+import numpy as np
+
 from ..utilities.stats import *
 from .global_vars import *
 
-def lacunarity_feature_grayscale(image_name, block, scale, box_size, slide_style=0, lac_type='grayscale'):
+def lac_feature(image_name, block, scale, box_size, output=None, slide_style=0, lac_type='grayscale'):
     """
     differential box-counting algorithm for computing lacunarity
 
@@ -32,6 +38,7 @@ def lacunarity_feature_grayscale(image_name, block, scale, box_size, slide_style
         the lacunarity image
     """
     assert(box_size < scale)
+    assert(scale % box_size == 0)
 
     ds = gdal.Open(image_name)
     image = ds.ReadAsArray()
@@ -49,8 +56,17 @@ def lacunarity_feature_grayscale(image_name, block, scale, box_size, slide_style
     
     ds = None
 
-    # move the window (scale) over the image block by block
-    for i in range(0, image.shape, block):
+    #restrict bands
+    image = image[0:3]
+
+    if lac_type == "grayscale":
+        image = np.moveaxis(image, 0, -1)
+        image = skimage.img_as_ubyte(rgb2gray(image))
+
+    # move the window (scale) over the 2D image block by block
+    out_image = []
+    for i in range(0, image.shape[0], block):
+        outrow = []
         if i >= MAX_SCALE and i <= image.shape[0] - MAX_SCALE:
             for j in range(0, image.shape[1], block):
                 if j >= MAX_SCALE and j <= image.shape[1] - MAX_SCALE:
@@ -66,20 +82,19 @@ def lacunarity_feature_grayscale(image_name, block, scale, box_size, slide_style
                     else:
                         scale_arr = image[center_i-int(scale/2):center_i+int(scale/2)+1,center_j-int(scale/2):center_j+int(scale/2)+1]
                     
-                    window = image[i:window_size, j:window_size]
                     # now slide the box over the window
                     n_mr = {} # the number of gliding boxes of size r and mass m. a histogram
                     # m = 0 # the mass of the grayscale image, the sum of the relative height of columns (n_ij)
                     # masses = []
                     total_boxes_in_window = 0
                     ii = 0
-                    while ii < len(scale):
+                    while ii + box_size <= len(scale_arr):
                         jj = 0
-                        while jj < len(scale[0]):
+                        while jj + box_size <= len(scale_arr[0]):
                             total_boxes_in_window += 1
-                            box = window[ii:box_size,jj:box_size]
-                            max_val = max(box)
-                            min_val = min(box)
+                            box = scale_arr[ii:ii+box_size,jj:jj+box_size]
+                            max_val = np.amax(box)
+                            min_val = np.amin(box)
                             u = math.ceil(min_val / box_size) # box with minimum pixel value
                             v = math.ceil(max_val / box_size) # box with maximum pixel value
                             n_ij = v - u + 1 # relative height of column at ii and jj
@@ -94,27 +109,32 @@ def lacunarity_feature_grayscale(image_name, block, scale, box_size, slide_style
                             else:
                                 n_mr[n_ij] += 1
                             # move the box based on the glide_style
-                            if glide_style == 0: # glide
+                            if slide_style == 0: # glide
                                 jj+=1
-                            elif glide_stype == -1: # block
+                            elif slide_style == -1: # block
                                 jj+=box_size
                             else: # skip
-                                jj+=box_size+glide_style
-                if glide_style == 0: # glide
-                    ii+=1
-                elif glide_stype == -1: # block
-                    ii+=box_size
-                else: # skip
-                    ii+=box_size+glide_style
-            num = 0
-            denom = 0
-            for masses in n_mr:
-                # the probability function which is the number of boxes
-                # of size r and mass m divided by the total number of boxes
-                q_mr = n_mr[masses] / total_boxes_in_window 
-                num += (masses*masses) * q_mr
-                denom += masses * q_mr
-            denom = denom**2
-            lac = num / denom
-            j+=1
-        i+=1
+                                jj+=box_size+slide_style
+                        if slide_style == 0: # glide
+                            ii+=1
+                        elif slide_style == -1: # block
+                            ii+=box_size
+                        else: # skip
+                            ii+=box_size+slide_style
+                    num = 0
+                    denom = 0
+                    for masses in n_mr:
+                        # the probability function which is the number of boxes
+                        # of size r and mass m divided by the total number of boxes
+                        q_mr = n_mr[masses] / total_boxes_in_window 
+                        num += (masses*masses) * q_mr
+                        denom += masses * q_mr
+                    denom = denom**2
+                    lac = num / denom
+                    outrow.append(lac)
+            out_image.append(outrow)
+    if output:
+        out_geotran = (out_ulx, out_cell_width, 0, out_uly, 0, out_cell_height)
+        write_geotiff(output, out_arr, out_geotran, out_srs_wkt)
+    else:
+        return np.array(out_image)

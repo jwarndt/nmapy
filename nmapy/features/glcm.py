@@ -58,6 +58,7 @@ def glcm_feature(image_name, block, scale, output=None, prop=None, stat=None):
                     block_arr = image[i:i+block,j:j+block]
                     center_i = int(i+block/2)
                     center_j = int(j+block/2)
+                    # catch the origin coordinates for writing the output
                     if len(out_image) == 0 and len(outrow) == 0:
                         out_uly = uly + cell_height * (center_i - block)
                         out_ulx = ulx + cell_width * (center_j - block)
