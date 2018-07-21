@@ -6,8 +6,7 @@ from osgeo import gdal
 from osgeo import osr
 
 from ..utilities.stats import *
-
-MAX_SCALE = 150
+from .global_vars import *
 
 def glcm_feature(image_name, block, scale, output=None, prop=None, stat=None):
     """
