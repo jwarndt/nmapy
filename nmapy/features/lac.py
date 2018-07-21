@@ -7,6 +7,7 @@ from skimage.color import rgb2gray
 import numpy as np
 
 from ..utilities.stats import *
+from ..utilities.io import *
 from .global_vars import *
 
 def lac_feature(image_name, block, scale, box_size, output=None, slide_style=0, lac_type='grayscale'):
@@ -135,6 +136,6 @@ def lac_feature(image_name, block, scale, box_size, output=None, slide_style=0, 
             out_image.append(outrow)
     if output:
         out_geotran = (out_ulx, out_cell_width, 0, out_uly, 0, out_cell_height)
-        write_geotiff(output, out_arr, out_geotran, out_srs_wkt)
+        write_geotiff(output, np.array(out_image), out_geotran, out_srs_wkt)
     else:
         return np.array(out_image)

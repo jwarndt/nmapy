@@ -5,6 +5,7 @@ from osgeo import osr
 from skimage.morphology import erosion, dilation, opening, closing, white_tophat
 
 from ..utilities.stats import *
+from ..utilities.io import *
 from .global_vars import *
 
 def get_se_set(sizes):
