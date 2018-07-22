@@ -37,11 +37,23 @@ def get_se_set(sizes):
         se_set.append([se0, se45, se90, se135])
     return se_set
 
-def MBI_feature(image_name, postprocess=True):
+def mbi_feature(image_name, output=None, postprocess=True):
     MBI_THRESHOLD = 5.5
-    
+
     ds = gdal.Open(image_name)
     image = ds.ReadAsArray()
+    geotran = ds.GetGeoTransform()
+    ulx = geotran[0]
+    uly = geotran[3]
+    cell_width = geotran[1]
+    cell_height = geotran[5]
+    
+    out_srs = osr.SpatialReference()
+    out_srs.ImportFromEPSG(4326)
+    out_srs_wkt = out_srs.ExportToWkt()
+    out_cell_width = block * cell_width
+    out_cell_height = block * cell_height
+
     ds = None
     image = np.moveaxis(image, 0, -1) # rows, columns, channels
     # calculate brightness as a local max
@@ -68,7 +80,12 @@ def MBI_feature(image_name, postprocess=True):
     while th_idx + 1 < len(mean_w_tophats):
         th_dmp.append(np.absolute(mean_w_tophats[th_idx + 1] - mean_w_tophats[th_idx]))
         th_idx+=1
-    mbi = calc_stat(np.array(th_dmp), 'mean', 0)
+    mbi = calc_stat(np.array(th_dmp), 'mean', 0) 
     if postprocess:
         mbi = np.where(mbi >= MBI_THRESHOLD, 1, 0)
-    return mbi
+    if output:
+        out_geotran = (out_ulx, out_cell_width, 0, out_uly, 0, out_cell_height)
+        # this should be a standardized write geotiff function
+        write_geotiff(output, mbi, out_geotran, out_srs_wkt)
+    else:
+        return np.array(mbi)
