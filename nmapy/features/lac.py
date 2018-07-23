@@ -123,7 +123,7 @@ def lac_feature(image_name, block, scale, box_size, output=None, slide_style=0, 
                         else: # skip
                             ii+=box_size+slide_style
                     num = 0
-                    denom = 0
+                    denom = 0.000001
                     for masses in n_mr:
                         # the probability function which is the number of boxes
                         # of size r and mass m divided by the total number of boxes
