@@ -121,7 +121,6 @@ def __multi_process(execution_parameters):
         outdir = execution_parameters["output"]
 
     s = time.time()
-    print("input: " + input_im)
     if execution_parameters["feature"] == "HOG":
         if auto_output_naming:
             out_im_basename = os.path.basename(input_im)[:-4] + "_HOG_BK" + str(execution_parameters["block"]) + "_SC" + str(execution_parameters["scale"]) +"_ST" + str(execution_parameters["stat"]) +".tif"
@@ -170,6 +169,7 @@ def __multi_process(execution_parameters):
     tot_sec = time.time() - s
     minutes = int(tot_sec // 60)
     sec = tot_sec % 60
+    print("input: " + input_im)
     print("done with image " + str(execution_parameters["count"]) + " of " + str(execution_parameters["total"]))
     print("Total processing time -- (%d min %f sec)\n" % (minutes, sec))
 

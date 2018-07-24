@@ -114,7 +114,6 @@ def glcm_feature(image_name, block, scale, output=None, prop=None, stat=None):
    
     if output:
         out_geotran = (out_ulx, out_cell_width, 0, out_uly, 0, out_cell_height)
-        # this should be a standardized write geotiff function
         write_geotiff(output, out_image, out_geotran, out_srs_wkt)
     else:
         return np.array(out_image)
