@@ -109,9 +109,9 @@ def __create_random_box(training_geometry, geotransform, box_dim, num_trials):
         training_box_geom = ogr.CreateGeometryFromWkt(wkt_box)
         if training_geometry.Contains(training_box_geom):
             box_info = [[rand_lx, rand_uy], box_dim]
-            return box_info
+            return box_info, training_box_geom
         trial_num += 1
-    return None
+    return None, None
 
 def __extract_chip_and_write(im, out_dir, box_geom, city_fid_class_string):
     """
@@ -208,6 +208,28 @@ def create_training_chips(training_shapefile, image_dir, out_dir, chips_per_feat
     dataset = driver.Open(training_shapefile, 0) # 0 means read-only. 1 means writeable.
     
     layer = dataset.GetLayer()
+    in_srs = layer.GetSpatialRef()
+
+
+    out_chip_shp = os.path.join(out_dir, os.path.basename(training_shapefile)[:-4] + "_chips.shp")
+    # set up the output shapefile 
+    out_driver = ogr.GetDriverByName("ESRI Shapefile")
+    # create the data source
+    out_datasource = out_driver.CreateDataSource(out_chip_shp)
+    # create the layer
+    out_layer = out_datasource.CreateLayer(out_chip_shp[:-4], in_srs, ogr.wkbPolygon)
+    # create fields
+    out_layer.CreateField(ogr.FieldDefn("poly_id", ogr.OFTInteger))
+    c_type = ogr.FieldDefn("class_type", ogr.OFTString)
+    c_type.SetWidth(50)
+    out_layer.CreateField(c_type)
+    i_name = ogr.FieldDefn("image_name", ogr.OFTString)
+    i_name.SetWidth(50)
+    out_layer.CreateField(i_name)
+    city_name = ogr.FieldDefn("city", ogr.OFTString)
+    city_name.SetWidth(50)
+    out_layer.CreateField(city_name)
+
     for feature in layer:
         class_type = feature.GetField("class_type")
         fid = str(feature.GetFID())
@@ -219,12 +241,26 @@ def create_training_chips(training_shapefile, image_dir, out_dir, chips_per_feat
         count = 0
         while count < chips_per_feature:
             city_fid_class_string = city + "_" + fid + "_" + str(count) + "_" + class_type
-            training_box_geom = __create_random_box(geom, geotran, box_dim, num_trials)
+            training_box_geom, wktgeom = __create_random_box(geom, geotran, box_dim, num_trials)
             if training_box_geom is None: 
                 print("INFO: NO BOX GEOM FOUND --> FID: " + fid + ", Chip Number: " + str(count))
             else:
                 __extract_chip_and_write(image, out_dir, training_box_geom, city_fid_class_string)
+                # create the feature
+                out_feature = ogr.Feature(out_layer.GetLayerDefn())
+                # Set the attributes using the values from the delimited text file
+                out_feature.SetField("poly_id", int(fid))
+                out_feature.SetField("class_type", class_type)
+                out_feature.SetField("image_name", im_name)
+                out_feature.SetField("city", city)
+                # Set the feature geometry using the polygon
+                out_feature.SetGeometry(wktgeom)
+                # Create the feature in the layer (shapefile)
+                out_layer.CreateFeature(out_feature)
+                # Dereference the feature
+                out_feature = None
             count += 1
+    out_datasource = None
 
 def main():
     start_time = time.time()
