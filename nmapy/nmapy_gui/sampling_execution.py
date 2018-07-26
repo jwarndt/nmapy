@@ -1,4 +1,5 @@
 import time
+import pprint
 
 from ..sampling.create_image_chips import create_training_chips
 from ..sampling.create_training_plots import create_training_plots
@@ -9,7 +10,10 @@ def execute(execution_parameters):
     print('\nStart date & time --- (%s)\n' % time.asctime(time.localtime(time.time())))
     print("User Input:")
     print("-----------")
-
+    pp = pprint.PrettyPrinter(indent=4,width=5)
+    pp.pprint(execution_parameters)
+    print()
+    
     __process(execution_parameters)
 
     tot_sec = time.time() - start_time

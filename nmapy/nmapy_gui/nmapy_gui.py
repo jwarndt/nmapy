@@ -3,6 +3,7 @@ from tkinter import Frame, Tk, Menu, Menubutton, Label, Button, Entry, IntVar, E
 from tkinter import ttk
 from tkinter import *
 import os
+import webbrowser
 
 from nmapy.nmapy.nmapy_gui import texture_execution
 from nmapy.nmapy.nmapy_gui import sampling_execution
@@ -10,6 +11,8 @@ from nmapy.nmapy.nmapy_gui import sampling_execution
 class App:
 
     def __init__(self, master):
+        self.help_url = "https://github.com/jwarndt/nmapy"
+
         self.master = master
         master.title("Textural Features")
         
@@ -30,7 +33,7 @@ class App:
         self.txt_output_entry = StringVar()
         self.sf = StringVar()
         self.block_entry = IntVar()
-        self.scale_entry = IntVar()
+        self.scale_entry = StringVar()
         self.glcm_prop = StringVar()
         self.box_size_entry = IntVar()
         self.slide_style_entry = IntVar()
@@ -69,11 +72,14 @@ class App:
         menubar.add_cascade(label="File", menu=filemenu)
         
         helpmenu = Menu(menubar, tearoff=0)
-        helpmenu.add_command(label="Help Index")
+        helpmenu.add_command(label="Help Index", command=self.open_help)
         helpmenu.add_command(label="About...")
         menubar.add_cascade(label="Help", menu=helpmenu)
 
         self.master.config(menu=menubar)
+
+    def open_help(self):
+        webbrowser.open_new(self.help_url)
 
     def build_texture_params(self):
         self.txt_input_label = Label(self.texture_tab, text="Input image")
@@ -167,14 +173,14 @@ class App:
             self.block_entry.grid(row=8, column=0, padx=10, sticky='W')
             self.scale_entry.grid(row=10, column=0, padx=10, sticky='W')
 
-            self.stat_label = Label(self.texture_tab, text="Statistic (optional)")
+            self.stat_label = Label(self.texture_tab, text="Statistic")
             self.stat_label.grid(row=11, column=0, padx=10, sticky="W")
             stat_options = (None,"all", "min", "max", "mean", "var", "std", "sum")
             self.stat = ttk.Combobox(self.texture_tab, width=75, values=stat_options)
             self.stat.current(0)
             self.stat.grid(row=12, column=0, columnspan=20, padx=10, sticky="W")
 
-            self.glcm_prop_label = Label(self.texture_tab, text="GLCM property (optional)")
+            self.glcm_prop_label = Label(self.texture_tab, text="GLCM property")
             self.glcm_prop_label.grid(row=13, column=0, padx=10, sticky='W')
             prop_options = (None,"contrast", "dissimilarity", "homogeneity", "ASM", "energy", "correlation")
             self.glcm_prop = ttk.Combobox(self.texture_tab, width=75, values=prop_options)
@@ -191,7 +197,7 @@ class App:
             self.block_entry.grid(row=8, column=0, padx=10, sticky='W')
             self.scale_entry.grid(row=10, column=0, padx=10, sticky='W')
 
-            self.stat_label = Label(self.texture_tab, text="Statistic (optional)")
+            self.stat_label = Label(self.texture_tab, text="Statistic")
             self.stat_label.grid(row=11, column=0, padx=10, sticky="W")
             stat_options = (None, "all", "min", "max", "mean", "var", "std", "sum")
             self.stat = ttk.Combobox(self.texture_tab, width=75, values=stat_options)
@@ -231,6 +237,7 @@ class App:
 
         elif self.st.get() == "Image chips":
             self.smp_in_image = tk.StringVar()
+            self.smp_in_file = tk.StringVar()
             self.smp_input_dir = Label(self.sample_tab, text="Input image directory")
             self.smp_input_dir.grid(row=3, column=0, padx=10, sticky="W")
             self.smp_input_dir_entry = Entry(self.sample_tab, textvariable=self.smp_in_image, width=75)
@@ -241,7 +248,7 @@ class App:
 
             self.smp_input_shapefile = Label(self.sample_tab, text="Input shapefile")
             self.smp_input_shapefile.grid(row=5, column=0, padx=10, sticky='W')
-            self.smp_input_entry = Entry(self.sample_tab, textvariable=self.in_file, width=75)
+            self.smp_input_entry = Entry(self.sample_tab, textvariable=self.smp_in_file, width=75)
             self.smp_input_entry.grid(row=6, column=0, padx=10, sticky='W')
 
             self.smp_output_dir = Label(self.sample_tab, text="Output image directory")
@@ -324,7 +331,7 @@ class App:
                   "output":self.txt_output_entry.get(),
                   "feature":self.sf.get(),
                   "block":int(self.block_entry.get()),
-                  "scale":int(self.scale_entry.get()),
+                  "scale":self.scale_entry.get(),
                   "prop":self.glcm_prop.get(),
                   "box_size":int(self.box_size_entry.get()),
                   "slide_style":int(self.slide_style_entry.get()),
