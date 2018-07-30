@@ -7,6 +7,7 @@ from ..features.hog import *
 from ..features.glcm import *
 from ..features.lac import *
 from ..features.mbi import *
+from ..features.lbp import *
 
 def execute(execution_parameters):
     p = Pool(int(execution_parameters["jobs"]))
@@ -58,6 +59,9 @@ def execute(execution_parameters):
                                   "lac_type":execution_parameters["lac_type"],
                                   "slide_style":execution_parameters["slide_style"],
                                   "feature":execution_parameters["feature"],
+                                  "lbp_method":execution_parameters["lbp_method"],
+                                  "radius":execution_parameters["radius"],
+                                  "n_points":execution_parameters["n_points"],
                                   "count": i+1,
                                   "total": len(im_list)})
                 s+=1
@@ -138,6 +142,17 @@ def __process(execution_parameters_list):
             mbi_feature(execution_parameters["input"],
                         output=execution_parameters["output"],
                         postprocess=execution_parameters["postprocess"])
+        elif execution_parameters["feature"] == "LBP":
+            if auto_output_naming:
+                out_im_basename = os.path.basename(input_im)[:-4] + "_MBI_PP" + str(execution_parameters["postprocess"]) + ".tif"
+                execution_parameters["output"] = os.path.join(outdir, out_im_basename)
+            lbp_feature(execution_parameters["input"],
+                        execution_parameters["block"],
+                        execution_parameters["scale"],
+                        output=execution_parameters["output"],
+                        method=execution_parameters["lbp_method"],
+                        radius=execution_parameters["radius"],
+                        n_points=execution_parameters["n_points"])
         tot_sec = time.time() - s
         minutes = int(tot_sec // 60)
         sec = tot_sec % 60

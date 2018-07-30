@@ -8,7 +8,7 @@ from ..utilities.stats import *
 from ..utilities.io import *
 from .global_vars import * # this gets access to global variables that are used with the features like MAX_SCALE
 
-def lbp_feature(image_name, block, scale, output=None):
+def lbp_feature(image_name, block, scale, output=None, method='default', radius=1, n_points=8):
     ds = gdal.Open(image_name)
     image = ds.ReadAsArray()
     geotran = ds.GetGeoTransform()
@@ -26,14 +26,14 @@ def lbp_feature(image_name, block, scale, output=None):
     ds = None
     image = np.moveaxis(image, 0, -1)
     image = skimage.img_as_ubyte(rgb2gray(image)) # lbp takes a gray level image
-    
+
     out_image = []
     for i in range(0, image.shape[0], block):
         outrow = []
         if i >= MAX_SCALE and i <= image.shape[0] - MAX_SCALE:
             for j in range(0, image.shape[1], block):
                 if j >= MAX_SCALE and j <= image.shape[1] - MAX_SCALE:
-
+                    print('hi')
 
 
     if output:
@@ -47,4 +47,4 @@ def lbp_feature(image_name, block, scale, output=None):
             out_arr = calc_stat(out_arr, stat, 0)
         return np.array(out_arr)
 
-lbp = local_binary_pattern(image, n_points, radius, METHOD)
+#lbp = local_binary_pattern(output, 50, 50, output=None, "n_points"=n_points, "radius"=radius, "method"=lbp_method)
