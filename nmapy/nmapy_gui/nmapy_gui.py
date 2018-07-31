@@ -42,7 +42,7 @@ class App:
         self.slide_style_entry = IntVar()
         self.lac_type = StringVar()
         # MBI
-        self.postprocess = BooleanVar()
+        self.postprocess = StringVar()
         # LBP
         self.radius = IntVar()
         self.n_points = IntVar()
@@ -106,7 +106,7 @@ class App:
         self.sfvar = None
         spatial_feature = Label(self.texture_tab, text="Spatial/Textural feature")
         spatial_feature.grid(row=5, column=0, padx=10, sticky='W')
-        options = ("HOG", "GLCM", "Pantex", "MBI", "Lacunarity", "LBP", "SIFT", "DSIFT", "Textons")
+        options = ("HOG", "GLCM", "Pantex", "MBI", "Lacunarity", "LBP", "SIFT", "Textons", "Gabor Filters")
         self.sf = ttk.Combobox(self.texture_tab, width=75, values=options)
         self.sf.grid(row=6, column=0, columnspan=20, padx=10, sticky='W')
         self.sf.bind("<<ComboboxSelected>>", self.set_additional_texture_params)
@@ -220,22 +220,38 @@ class App:
             self.postprocess.grid(row=12, column=0, columnspan=20, padx=10, sticky='W')
 
         if self.sf.get() == "LBP":
+            self.block = Label(self.texture_tab, text="Block size (pixels)")
+            self.scale = Label(self.texture_tab, text='Scale size (pixels)')
+            self.block.grid(row=7, column=0, ipadx=10, sticky='W')
+            self.scale.grid(row=9, column=0, ipadx=10, sticky='W')
+            self.block_entry = Entry(self.texture_tab, width=75)
+            self.scale_entry = Entry(self.texture_tab, width=75)
+            self.block_entry.grid(row=8, column=0, padx=10, sticky='W')
+            self.scale_entry.grid(row=10, column=0, padx=10, sticky='W')
+
             self.lbp_method_label = Label(self.texture_tab, text="Method")  
-            self.lbp_method_label.grid(row=7, column=0, padx=10, sticky="W")
+            self.lbp_method_label.grid(row=11, column=0, padx=10, sticky="W")
             lbp_options = ("default", "ror", "uniform", "var")
             self.lbp_method = ttk.Combobox(self.texture_tab, width=75, values=lbp_options)
             self.lbp_method.current(0)
-            self.lbp_method.grid(row=8, column=0, columnspan=20, padx=10, sticky="W")
+            self.lbp_method.grid(row=12, column=0, columnspan=20, padx=10, sticky="W")
 
             self.radius_label = Label(self.texture_tab, text="Radius")
-            self.radius_label.grid(row=9, column=0, padx=10, sticky="W")
+            self.radius_label.grid(row=13, column=0, padx=10, sticky="W")
             self.radius = Entry(self.texture_tab, width=75)
-            self.radius.grid(row=10, column=0, padx=10, sticky="W")
+            self.radius.grid(row=14, column=0, padx=10, sticky="W")
 
             self.n_points_label = Label(self.texture_tab, text="Number of points")
-            self.n_points_label.grid(row=11, column=0, padx=10, sticky="W")
+            self.n_points_label.grid(row=15, column=0, padx=10, sticky="W")
             self.n_points = Entry(self.texture_tab, width=75)
-            self.n_points.grid(row=12, column=0, padx=10, sticky="W")
+            self.n_points.grid(row=16, column=0, padx=10, sticky="W")
+
+            self.stat_label = Label(self.texture_tab, text="Statistic")
+            self.stat_label.grid(row=17, column=0, padx=10, sticky="W")
+            stat_options = (None, "all", "min", "max", "mean", "var", "std", "sum")
+            self.stat = ttk.Combobox(self.texture_tab, width=75, values=stat_options)
+            self.stat.current(0)
+            self.stat.grid(row=18, column=0, columnspan=20, padx=10, sticky="W")
 
     def set_additional_sample_params(self, callback):
         self.clear_params("sampling")
@@ -343,14 +359,6 @@ class App:
                 if int(label.grid_info()["row"]) > 2 and int(label.grid_info()["row"]) != 50 and int(label.grid_info()["row"]) != 51:
                     label.grid_forget()
 
-    def clear_sample_params(self):
-        """
-        clears all parameters except sample type label and entry
-        """
-        for label in self.sample_tab.grid_slaves():
-            if int(label.grid_info()["row"]) > 2 and int(label.grid_info()["row"]) != 50 and int(label.grid_info()["row"]) != 51:
-                label.grid_forget()
-
     def run_texture_params(self):
         params = {"input": self.txt_input_entry.get(),
                   "output":self.txt_output_entry.get(),
@@ -364,8 +372,8 @@ class App:
                   "stat":self.stat.get(),
                   "postprocess":self.postprocess.get(),
                   "lbp_method":self.lbp_method.get(),
-                  "radius":int(self.radius.get()),
-                  "n_points":int(self.n_points.get()),
+                  "radius":self.radius.get(),
+                  "n_points":self.n_points.get(),
                   "jobs":int(self.njob_entry.get())}
         texture_execution.execute(params)
 

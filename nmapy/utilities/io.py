@@ -8,11 +8,22 @@ def write_geotiff(out_file, in_arr, geotran, srs_wkt):
     driver = gdal.GetDriverByName('GTiff')
     if len(in_arr.shape) == 3: # if the shape is (bands, rows, columns)
         out = driver.Create(out_file, in_arr.shape[2], in_arr.shape[1], in_arr.shape[0], gdal.GDT_Float64)
-        out.SetGeoTransform(geotran) # the origin is the upper left of the input shapefile
+        out.SetGeoTransform(geotran) 
         for b in range(in_arr.shape[0]):
             outband = out.GetRasterBand(b+1)
             outband.WriteArray(in_arr[b])
             outband.FlushCache()
+    elif len(in_arr.shape) == 4:
+        nbands = np.prod([n for n in in_arr.shape[:-2]])
+        out = driver.Create(out_file, in_arr.shape[-1], in_arr.shape[-2], int(nbands), gdal.GDT_Float64)
+        out.SetGeoTransform(geotran)
+        b = 1
+        for b1 in range(in_arr.shape[0]):
+            for b2 in range(in_arr.shape[1]):
+                outband = out.GetRasterBand(b)
+                outband.WriteArray(in_arr[b1,b2,:,:])
+                outband.FlushCache()
+                b+=1
     else:
         out = driver.Create(out_file, in_arr.shape[1], in_arr.shape[0], 1, gdal.GDT_Float64)
         out.SetGeoTransform(geotran) # the origin is the upper left of the input shapefile
