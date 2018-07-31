@@ -48,7 +48,7 @@ def write_sift_keypoint_desc(image_name, outdir):
 
 def get_rand_sift_feats(siftdat_dir, sample_num=100000):
     keypoints = []
-    siftdat_files = [n if n[-8:] == ".siftdat" for n in os.listdir(siftdat_dir)]
+    siftdat_files = [n for n in os.listdir(siftdat_dir) if n[-8:] == ".siftdat"]
     while len(keypoints) < sample_num:
         siftdat = np.fromfile(siftdat_files[random.randint(0, len(siftdat_files))]) # retrieve and open a random file
         keypoints.append(siftdat[random.randint(0, len(siftdat))][2:]) # read a random sift feature from the array and append only its description to keypoints
@@ -63,7 +63,7 @@ def create_sift_codebook(image_dir, out_dir, n_clusters=32, rand_samp_num=100000
         sampled sift keypoint descriptions.
         Each cluster center is a vector of 128 features
     """
-    image_names = [n if n[-4:] == ".tif" for n in os.listdir(image_dir)]
+    image_names = [n for n in os.listdir(image_dir) if n[-4:] == ".tif"]
     out_codebook_file = os.path.join(outdir, 'sift_kmeans_codebook' + ".dat")
     for n in image_names:
         write_sift_keypoint_desc(n, out_dir)
@@ -73,7 +73,7 @@ def create_sift_codebook(image_dir, out_dir, n_clusters=32, rand_samp_num=100000
     return codebook
 
 def assign_codeword(siftdat_dir, codebook_file):
-    siftdat_files = [n if n[-8:] == ".siftdat" for n in os.listdir(siftdat_dir)]
+    siftdat_files = [n for n in os.listdir(siftdat_dir) if n[-8:] == ".siftdat"]
     codebook = np.fromfile(codebook_file) # get the cluster centers from kmeans. (an ndarray)
     for n in siftdat_files:
         siftdat = np.fromfile(n)
