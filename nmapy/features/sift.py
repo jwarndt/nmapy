@@ -35,6 +35,7 @@ def write_sift_keypoint_desc(image_name, outdir):
     ds = None
     image = np.moveaxis(image, 0, -1)
     image = skimage.img_as_ubyte(rgb2gray(image))
+    image = image[0:5000,0:5000]
     
     # find keypoints and compute descriptions
     sift = cv2.xfeatures2d.SIFT_create()
@@ -45,13 +46,23 @@ def write_sift_keypoint_desc(image_name, outdir):
 
     out_dat_file = os.path.join(outdir, os.path.basename(image_name)[:-4] + ".siftdat")
     sift_des.tofile(out_dat_file)
+    return sift_des
 
 def get_rand_sift_feats(siftdat_dir, sample_num=100000):
     keypoints = []
     siftdat_files = [n for n in os.listdir(siftdat_dir) if n[-8:] == ".siftdat"]
+    rand_file_idx = [random.randint(0, len(siftdat_files)-1) for n in range(sample_num)]
+    rand_file_idx.sort()
+    count = 0
+    cur_file = None
     while len(keypoints) < sample_num:
-        siftdat = np.fromfile(siftdat_files[random.randint(0, len(siftdat_files))]) # retrieve and open a random file
-        keypoints.append(siftdat[random.randint(0, len(siftdat))][2:]) # read a random sift feature from the array and append only its description to keypoints
+        if cur_file != siftdat_files[rand_file_idx[count]]:
+            cur_file = siftdat_files[rand_file_idx[count]]
+            siftdat = np.fromfile(os.path.join(siftdat_dir, cur_file)) # retrieve and open a random file
+            siftdat = siftdat.reshape(-1,130) # reshape into a 2D array of (n_samples, n_features). 128 features plus and x and y coord for a total of 130 features. 
+        rand_kp = random.randint(0, len(siftdat)-1)
+        keypoints.append(siftdat[rand_kp,2:]) # read a random sift feature from the array and append only its description to keypoints
+        count+=1
     return keypoints
 
 def create_sift_codebook(image_dir, out_dir, n_clusters=32, rand_samp_num=100000):
@@ -63,7 +74,7 @@ def create_sift_codebook(image_dir, out_dir, n_clusters=32, rand_samp_num=100000
         sampled sift keypoint descriptions.
         Each cluster center is a vector of 128 features
     """
-    image_names = [n for n in os.listdir(image_dir) if n[-4:] == ".tif"]
+    image_names = [os.path.join(image_dir,n) for n in os.listdir(image_dir) if n[-4:] == ".tif"]
     out_codebook_file = os.path.join(outdir, 'sift_kmeans_codebook' + ".dat")
     for n in image_names:
         write_sift_keypoint_desc(n, out_dir)
