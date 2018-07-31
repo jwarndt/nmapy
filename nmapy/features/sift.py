@@ -83,13 +83,26 @@ def create_sift_codebook(image_dir, out_dir, n_clusters=32, rand_samp_num=100000
     codebook.cluster_centers_.tofile(out_codebook_file)
     return codebook
 
+def restore_codebook(codebook_filename):
+    """
+    reads the cluster_centers from the codebook file
+    and restores a kmeans model to use for prediction
+    """
+    cluster_centers = np.fromfile(codebook_filename).reshape(-1,128)
+    n_clusters = len(cluster_centers)
+    codebook = KMeans(n_clusters=n_clusters, random_state=42)
+    codebook.cluster_centers_ = cluster_centers
+    return codebook
+
 def assign_codeword(siftdat_dir, codebook_file):
-    siftdat_files = [n for n in os.listdir(siftdat_dir) if n[-8:] == ".siftdat"]
-    codebook = np.fromfile(codebook_file) # get the cluster centers from kmeans. (an ndarray)
+    siftdat_files = [os.path.join(siftdat_dir,n) for n in os.listdir(siftdat_dir) if n[-8:] == ".siftdat"]
+    codebook = restore_codebook(codebook_file) # get the cluster centers from kmeans. (an ndarray)
     for n in siftdat_files:
-        siftdat = np.fromfile(n)
+        siftdat = np.fromfile(n).reshape(-1, 130)
         coords = siftdat[:,:2]
         feats = siftdat[:,2:]
+        pred = codebook.predict(feats)
+        return pred
 
 
 
