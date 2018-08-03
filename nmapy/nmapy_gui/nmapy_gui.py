@@ -47,6 +47,10 @@ class App:
         self.radius = IntVar()
         self.n_points = IntVar()
         self.lbp_method = StringVar()
+        # SIFT
+        self.sift_mode_value = IntVar()
+        self.n_cluster_entry = IntVar()
+        self.n_rand_samp_entry = IntVar()
         
 
         # sampling parameters
@@ -89,36 +93,13 @@ class App:
         webbrowser.open_new(self.help_url)
 
     def build_texture_params(self):
-        self.txt_input_label = Label(self.texture_tab, text="Input image")
-        self.txt_output_label = Label(self.texture_tab, text="Output image")
-        self.txt_input_label.grid(row=1, column=0, padx=10, sticky='W')
-        self.txt_output_label.grid(row=3, column=0, padx=10, sticky='W')
-        self.txt_in_file = tk.StringVar()
-
-        self.txt_input_entry = Entry(self.texture_tab, textvariable=self.txt_in_file, width=75)
-        self.txt_input_entry.grid(row=2, column=0, padx=10, sticky='W')
-        # self.bbutton = Button(self.texture_tab, text="Browse", command=self.browse_for_file)
-        # self.bbutton.grid(row=2, column=1, padx=10)
-
-        self.txt_output_entry = Entry(self.texture_tab, width=75)
-        self.txt_output_entry.grid(row=4, column=0, padx=10, sticky='W')
-
         self.sfvar = None
         spatial_feature = Label(self.texture_tab, text="Spatial/Textural feature")
-        spatial_feature.grid(row=5, column=0, padx=10, sticky='W')
+        spatial_feature.grid(row=1, column=0, padx=10, sticky='W')
         options = ("HOG", "GLCM", "Pantex", "MBI", "Lacunarity", "LBP", "SIFT", "Textons", "Gabor Filters")
         self.sf = ttk.Combobox(self.texture_tab, width=75, values=options)
-        self.sf.grid(row=6, column=0, columnspan=20, padx=10, sticky='W')
+        self.sf.grid(row=2, column=0, columnspan=20, padx=10, sticky='W')
         self.sf.bind("<<ComboboxSelected>>", self.set_additional_texture_params)
-
-        self.job_num.set(1)
-        njob_label = Label(self.texture_tab, text="Number of jobs")
-        njob_label.grid(row=50, column=0, padx=10, stick="W")
-        self.njob_entry = Entry(self.texture_tab, textvariable=self.job_num, width=10)
-        self.njob_entry.grid(row=51, column=0, padx=10, stick="W")
-
-        self.txt_execute_button = Button(self.texture_tab, text="OK", command=self.run_texture_params)
-        self.txt_execute_button.grid(row=51, column=0)
 
     def build_sampling_params(self):
         sample_type = Label(self.sample_tab, text="Training sample type")
@@ -134,6 +115,21 @@ class App:
     def set_additional_texture_params(self, callback):
         self.clear_params("texture")
         if self.sf.get() == "Pantex":
+            self.txt_input_label = Label(self.texture_tab, text="Input image")
+            self.txt_input_label.grid(row=3, column=0, padx=10, sticky='W')
+            self.txt_in_file = tk.StringVar()
+            self.txt_input_entry = Entry(self.texture_tab, textvariable=self.txt_in_file, width=75)
+            self.txt_input_entry.grid(row=4, column=0, padx=10, sticky='W')
+
+            self.txt_output_label = Label(self.texture_tab, text="Output image")
+            self.txt_output_label.grid(row=5, column=0, padx=10, sticky='W')
+            self.txt_output_entry = Entry(self.texture_tab, width=75)
+            self.txt_output_entry.grid(row=6, column=0, padx=10, sticky='W')
+            
+            # self.bbutton = Button(self.texture_tab, text="Browse", command=self.browse_for_file)
+            # self.bbutton.grid(row=2, column=1, padx=10)
+
+
             self.block = Label(self.texture_tab, text="Block size (pixels)")
             self.scale = Label(self.texture_tab, text='Scale size (pixels)')
             self.block.grid(row=7, column=0, ipadx=10, sticky='W')
@@ -144,6 +140,17 @@ class App:
             self.scale_entry.grid(row=10, column=0, padx=10, sticky='W')
 
         if self.sf.get() == "Lacunarity":
+            self.txt_input_label = Label(self.texture_tab, text="Input image")
+            self.txt_input_label.grid(row=3, column=0, padx=10, sticky='W')
+            self.txt_in_file = tk.StringVar()
+            self.txt_input_entry = Entry(self.texture_tab, textvariable=self.txt_in_file, width=75)
+            self.txt_input_entry.grid(row=4, column=0, padx=10, sticky='W')
+
+            self.txt_output_label = Label(self.texture_tab, text="Output image")
+            self.txt_output_label.grid(row=5, column=0, padx=10, sticky='W')
+            self.txt_output_entry = Entry(self.texture_tab, width=75)
+            self.txt_output_entry.grid(row=6, column=0, padx=10, sticky='W')
+
             self.block = Label(self.texture_tab, text="Block size (pixels)")
             self.scale = Label(self.texture_tab, text='Scale size (pixels)')
             self.block.grid(row=7, column=0, ipadx=10, sticky='W')
@@ -171,6 +178,17 @@ class App:
             self.lac_type.grid(row=16, column=0, columnspan=20, padx=10, sticky='W')            
 
         if self.sf.get() == "GLCM":
+            self.txt_input_label = Label(self.texture_tab, text="Input image")
+            self.txt_input_label.grid(row=3, column=0, padx=10, sticky='W')
+            self.txt_in_file = tk.StringVar()
+            self.txt_input_entry = Entry(self.texture_tab, textvariable=self.txt_in_file, width=75)
+            self.txt_input_entry.grid(row=4, column=0, padx=10, sticky='W')
+
+            self.txt_output_label = Label(self.texture_tab, text="Output image")
+            self.txt_output_label.grid(row=5, column=0, padx=10, sticky='W')
+            self.txt_output_entry = Entry(self.texture_tab, width=75)
+            self.txt_output_entry.grid(row=6, column=0, padx=10, sticky='W')
+
             self.block = Label(self.texture_tab, text="Block size (pixels)")
             self.scale = Label(self.texture_tab, text='Scale size (pixels)')
             self.block.grid(row=7, column=0, ipadx=10, sticky='W')
@@ -195,6 +213,17 @@ class App:
             self.glcm_prop.grid(row=14, column=0, columnspan=20, padx=10, sticky="W")
 
         if self.sf.get() == "HOG":
+            self.txt_input_label = Label(self.texture_tab, text="Input image")
+            self.txt_input_label.grid(row=3, column=0, padx=10, sticky='W')
+            self.txt_in_file = tk.StringVar()
+            self.txt_input_entry = Entry(self.texture_tab, textvariable=self.txt_in_file, width=75)
+            self.txt_input_entry.grid(row=4, column=0, padx=10, sticky='W')
+
+            self.txt_output_label = Label(self.texture_tab, text="Output image")
+            self.txt_output_label.grid(row=5, column=0, padx=10, sticky='W')
+            self.txt_output_entry = Entry(self.texture_tab, width=75)
+            self.txt_output_entry.grid(row=6, column=0, padx=10, sticky='W')
+
             self.block = Label(self.texture_tab, text="Block size (pixels)")
             self.scale = Label(self.texture_tab, text='Scale size (pixels)')
             self.block.grid(row=7, column=0, ipadx=10, sticky='W')
@@ -212,6 +241,17 @@ class App:
             self.stat.grid(row=12, column=0, columnspan=20, padx=10, sticky="W")
 
         if self.sf.get() == "MBI":
+            self.txt_input_label = Label(self.texture_tab, text="Input image")
+            self.txt_input_label.grid(row=3, column=0, padx=10, sticky='W')
+            self.txt_in_file = tk.StringVar()
+            self.txt_input_entry = Entry(self.texture_tab, textvariable=self.txt_in_file, width=75)
+            self.txt_input_entry.grid(row=4, column=0, padx=10, sticky='W')
+
+            self.txt_output_label = Label(self.texture_tab, text="Output image")
+            self.txt_output_label.grid(row=5, column=0, padx=10, sticky='W')
+            self.txt_output_entry = Entry(self.texture_tab, width=75)
+            self.txt_output_entry.grid(row=6, column=0, padx=10, sticky='W')
+
             self.postprocess_label = Label(self.texture_tab, text="Postprocess")
             self.postprocess_label.grid(row=11, column=0, padx=10, sticky="W")
             mbi_options = (True, False)
@@ -220,6 +260,17 @@ class App:
             self.postprocess.grid(row=12, column=0, columnspan=20, padx=10, sticky='W')
 
         if self.sf.get() == "LBP":
+            self.txt_input_label = Label(self.texture_tab, text="Input image")
+            self.txt_input_label.grid(row=3, column=0, padx=10, sticky='W')
+            self.txt_in_file = tk.StringVar()
+            self.txt_input_entry = Entry(self.texture_tab, textvariable=self.txt_in_file, width=75)
+            self.txt_input_entry.grid(row=4, column=0, padx=10, sticky='W')
+
+            self.txt_output_label = Label(self.texture_tab, text="Output image")
+            self.txt_output_label.grid(row=5, column=0, padx=10, sticky='W')
+            self.txt_output_entry = Entry(self.texture_tab, width=75)
+            self.txt_output_entry.grid(row=6, column=0, padx=10, sticky='W')
+
             self.block = Label(self.texture_tab, text="Block size (pixels)")
             self.scale = Label(self.texture_tab, text='Scale size (pixels)')
             self.block.grid(row=7, column=0, ipadx=10, sticky='W')
@@ -229,7 +280,7 @@ class App:
             self.block_entry.grid(row=8, column=0, padx=10, sticky='W')
             self.scale_entry.grid(row=10, column=0, padx=10, sticky='W')
 
-            self.lbp_method_label = Label(self.texture_tab, text="Method")  
+            self.lbp_method_label = Label(self.texture_tab, text="Method")
             self.lbp_method_label.grid(row=11, column=0, padx=10, sticky="W")
             lbp_options = ("default", "ror", "uniform", "var")
             self.lbp_method = ttk.Combobox(self.texture_tab, width=75, values=lbp_options)
@@ -252,6 +303,75 @@ class App:
             self.stat = ttk.Combobox(self.texture_tab, width=75, values=stat_options)
             self.stat.current(0)
             self.stat.grid(row=18, column=0, columnspan=20, padx=10, sticky="W")
+
+        if self.sf.get() == "SIFT":
+            self.mode_label = Label(self.texture_tab, text="Mode")
+            self.mode_label.grid(row=3, column=0, ipadx=10, sticky="W")
+            self.rad1 = Radiobutton(self.texture_tab, text="Create Codeword Images", variable=self.sift_mode_value, value=1, command=self.set_sift_params)
+            self.rad2 = Radiobutton(self.texture_tab, text="Create SIFT Block/Scale Features", variable=self.sift_mode_value, value=2, command=self.set_sift_params)
+            self.rad1.grid(row=4, column=0, ipadx=10, sticky="W")
+            self.rad2.grid(row=5, column=0, ipadx=10, sticky="W")
+
+        self.job_num.set(1)
+        njob_label = Label(self.texture_tab, text="Number of jobs")
+        njob_label.grid(row=50, column=0, padx=10, stick="W")
+        self.njob_entry = Entry(self.texture_tab, textvariable=self.job_num, width=10)
+        self.njob_entry.grid(row=51, column=0, padx=10, stick="W")
+
+        self.txt_execute_button = Button(self.texture_tab, text="OK", command=self.run_texture_params)
+        self.txt_execute_button.grid(row=52, column=0, padx=75, pady=5)
+
+    def set_sift_params(self):
+        if self.sift_mode_value.get() == 1: # create codeword images
+            for label in self.texture_tab.grid_slaves():
+                if int(label.grid_info()["row"]) > 5 and int(label.grid_info()["row"]) < 50:
+                    label.grid_forget()
+            self.txt_input_label = Label(self.texture_tab, text="Input image directories")
+            self.txt_input_label.grid(row=6, column=0, padx=10, sticky='W')
+            self.txt_in_file = tk.StringVar()
+            self.txt_input_entry = Entry(self.texture_tab, textvariable=self.txt_in_file, width=75)
+            self.txt_input_entry.grid(row=7, column=0, padx=10, sticky='W')
+
+            self.txt_output_label = Label(self.texture_tab, text="Output SIFT data directory")
+            self.txt_output_label.grid(row=8, column=0, padx=10, sticky='W')
+            self.txt_output_entry = Entry(self.texture_tab, width=75)
+            self.txt_output_entry.grid(row=9, column=0, padx=10, sticky='W')
+
+            self.n_cluster_label = Label(self.texture_tab, text="Number of clusters")
+            self.n_cluster_label.grid(row=10, column=0, padx=10, sticky='W')
+            self.n_cluster_entry = Entry(self.texture_tab, width=75)
+            self.n_cluster_entry.grid(row=11, column=0, padx=10, sticky='W')
+
+            self.n_rand_samp_label = Label(self.texture_tab, text="Number of random samples")
+            self.n_rand_samp_label.grid(row=12, column=0, padx=10, sticky='W')
+            self.n_rand_samp_entry = Entry(self.texture_tab, width=75)
+            self.n_rand_samp_entry.grid(row=13, column=0, padx=10, sticky='W')
+
+
+        elif self.sift_mode_value.get() == 2: # create SIFT block/scale features
+            for label in self.texture_tab.grid_slaves():
+                if int(label.grid_info()["row"]) > 5 and int(label.grid_info()["row"]) < 50:
+                    label.grid_forget()
+            self.txt_input_label = Label(self.texture_tab, text="Input image")
+            self.txt_input_label.grid(row=6, column=0, padx=10, sticky='W')
+            self.txt_in_file = tk.StringVar()
+            self.txt_input_entry = Entry(self.texture_tab, textvariable=self.txt_in_file, width=75)
+            self.txt_input_entry.grid(row=7, column=0, padx=10, sticky='W')
+
+            self.txt_output_label = Label(self.texture_tab, text="Output image")
+            self.txt_output_label.grid(row=8, column=0, padx=10, sticky='W')
+            self.txt_output_entry = Entry(self.texture_tab, width=75)
+            self.txt_output_entry.grid(row=9, column=0, padx=10, sticky='W')
+
+            self.block = Label(self.texture_tab, text="Block size (pixels)")
+            self.scale = Label(self.texture_tab, text='Scale size (pixels)')
+            self.block.grid(row=10, column=0, ipadx=10, sticky='W')
+            self.scale.grid(row=12, column=0, ipadx=10, sticky='W')
+            self.block_entry = Entry(self.texture_tab, width=75)
+            self.scale_entry = Entry(self.texture_tab, width=75)
+            self.block_entry.grid(row=11, column=0, padx=10, sticky='W')
+            self.scale_entry.grid(row=13, column=0, padx=10, sticky='W')
+
 
     def set_additional_sample_params(self, callback):
         self.clear_params("sampling")
@@ -352,11 +472,11 @@ class App:
         """
         if tab == "texture":
             for label in self.texture_tab.grid_slaves():
-                if int(label.grid_info()["row"]) > 6 and int(label.grid_info()["row"]) != 50 and int(label.grid_info()["row"]) != 51:
+                if int(label.grid_info()["row"]) > 2 and int(label.grid_info()["row"]) < 50:
                     label.grid_forget()
         elif tab == "sampling":
             for label in self.sample_tab.grid_slaves():
-                if int(label.grid_info()["row"]) > 2 and int(label.grid_info()["row"]) != 50 and int(label.grid_info()["row"]) != 51:
+                if int(label.grid_info()["row"]) > 2 and int(label.grid_info()["row"]) < 50:
                     label.grid_forget()
 
     def run_texture_params(self):
@@ -374,6 +494,9 @@ class App:
                   "lbp_method":self.lbp_method.get(),
                   "radius":self.radius.get(),
                   "n_points":self.n_points.get(),
+                  "sift_mode":self.sift_mode_value.get(),
+                  "n_clusters":int(self.n_cluster_entry.get()),
+                  "n_rand_samp":int(self.n_rand_samp_entry.get()),
                   "jobs":int(self.njob_entry.get())}
         texture_execution.execute(params)
 

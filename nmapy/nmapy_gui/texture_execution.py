@@ -8,6 +8,7 @@ from ..features.glcm import *
 from ..features.lac import *
 from ..features.mbi import *
 from ..features.lbp import *
+from ..features.sift import *
 from .param_check import *
 
 def execute(execution_parameters):
@@ -22,56 +23,62 @@ def execute(execution_parameters):
     pp = pprint.PrettyPrinter(indent=4,width=5)
     pp.pprint(execution_parameters)
     print()
+
+    # process the sift features differently if creating the codeword images
+    if execution_parameters["feature"] == "SIFT" and execution_parameters["sift_mode"] == 1:
+        __process([execution_parameters])
     
-    dir_processing = False
-    if execution_parameters["input"][-4] != ".":
-        dir_processing = True
-        im_list = __get_tif_images(execution_parameters["input"])
-        print("processing " + str(len(im_list)) + " images")
     else:
-        im_list = [execution_parameters["input"]]
-        print("processing 1 image")
-    
-    if execution_parameters["output"][:-4] == ".":
+        dir_processing = False
+        if execution_parameters["input"][-4] != ".":
+            dir_processing = True
+            im_list = __get_tif_images(execution_parameters["input"])
+            print("processing " + str(len(im_list)) + " images")
+        else:
+            im_list = [execution_parameters["input"]]
+            print("processing 1 image")
+        
+        if execution_parameters["output"][:-4] == ".":
+            if dir_processing:
+                print("error: cannot read a directory of images and output them to a single image")
+                print("you must also pass in a directory for the output location if you specify a ")
+                print("directory as input")
+                return
+        
+        # data parralelism
+        feature_count = 0
+        paramslist = []
+        i = 0
+        while i < len(im_list):
+            # holds a nested list of execution parameters parameters. each nested list of parameters, corresponds to a single image
+            # so it's like: [ [{image1 feat1parms}, {image1 feat12parms}], [image2 feat1parms, image2 feat12parms], ... ]
+            feature_list = []
+            s = 0
+            while s < len(execution_parameters["scale"]):
+                feature_list.append({"input":im_list[i],
+                                  "output":execution_parameters["output"],
+                                  "scale": execution_parameters["scale"][s],
+                                  "block":execution_parameters["block"],
+                                  "box_size":execution_parameters["box_size"],
+                                  "prop":execution_parameters["prop"],
+                                  "stat":execution_parameters["stat"],
+                                  "postprocess":execution_parameters["postprocess"],
+                                  "lac_type":execution_parameters["lac_type"],
+                                  "slide_style":execution_parameters["slide_style"],
+                                  "feature":execution_parameters["feature"],
+                                  "lbp_method":execution_parameters["lbp_method"],
+                                  "radius":execution_parameters["radius"],
+                                  "n_points":execution_parameters["n_points"],
+                                  "sift_mode":execution_parameters["sift_mode"]})
+                s+=1
+                feature_count+=1
+            paramslist.append(feature_list)
+            i+=1
+        print("processing " + str(feature_count) + " features\n")
         if dir_processing:
-            print("error: cannot read a directory of images and output them to a single image")
-            print("you must also pass in a directory for the output location if you specify a ")
-            print("directory as input")
-            return
-    
-    # data parralelism
-    feature_count = 0
-    paramslist = []
-    i = 0
-    while i < len(im_list):
-        # holds a nested list of execution parameters parameters. each nested list of parameters, corresponds to a single image
-        # so it's like: [ [{image1 feat1parms}, {image1 feat12parms}], [image2 feat1parms, image2 feat12parms], ... ]
-        feature_list = []
-        s = 0
-        while s < len(execution_parameters["scale"]):
-            feature_list.append({"input":im_list[i],
-                              "output":execution_parameters["output"],
-                              "scale": execution_parameters["scale"][s],
-                              "block":execution_parameters["block"],
-                              "box_size":execution_parameters["box_size"],
-                              "prop":execution_parameters["prop"],
-                              "stat":execution_parameters["stat"],
-                              "postprocess":execution_parameters["postprocess"],
-                              "lac_type":execution_parameters["lac_type"],
-                              "slide_style":execution_parameters["slide_style"],
-                              "feature":execution_parameters["feature"],
-                              "lbp_method":execution_parameters["lbp_method"],
-                              "radius":execution_parameters["radius"],
-                              "n_points":execution_parameters["n_points"]})
-            s+=1
-            feature_count+=1
-        paramslist.append(feature_list)
-        i+=1
-    print("processing " + str(feature_count) + " features\n")
-    if dir_processing:
-        p.map(__process, paramslist)
-    else:
-        __process(paramslist[0])
+            p.map(__process, paramslist)
+        else:
+            __process(paramslist[0])
     
     tot_sec = time.time() - start_time
     minutes = int(tot_sec // 60)
@@ -152,6 +159,19 @@ def __process(execution_parameters_list):
                         radius=execution_parameters["radius"],
                         n_points=execution_parameters["n_points"],
                         stat=execution_parameters["stat"])
+        elif execution_parameters["feature"] == "SIFT" and execution_parameters['sift_mode'] == 1:
+            create_sift_codeword_images(execution_parameters["input"],
+                                        execution_parameters["output"],
+                                        n_clusters=execution_parameters["n_clusters"],
+                                        rand_samp_num=execution_parameters["n_rand_samp"])
+        elif execution_parameters["feature"] == "SIFT" and execution_parameters['sift_mode'] == 2:
+            if auto_output_naming:
+                out_im_basename = os.path.basename(input_im)[:-4] + "_SIFT_BK" + str(execution_parameters["block"]) + "_SC" + str(execution_parameters["scale"]) + ".tif"
+                execution_parameters["output"] = os.path.join(outdir, out_im_basename)
+            sift_feature(execution_parameters["input"],
+                        execution_parameters["block"],
+                        execution_parameters["scale"],
+                        output=execution_parameters["output"])
         
         tot_sec = time.time() - s
         minutes = int(tot_sec // 60)

@@ -9,12 +9,21 @@ def check_output(output_param):
     return NotImplemented
 
 def validate_and_adjust_texture_params(params):
-    if params["feature"] != "MBI":
+    if params["feature"] != "MBI" and params["feature"] != "SIFT":
         scale_list = params["scale"].strip().split(',')
         scale_list = [int(n) for n in scale_list]
-        params["scale"] = scale_list
     else:
-        params["scale"] = [None]
+        if params["feature"] == "SIFT" and params["sift_mode"] == 2:
+            scale_list = params["scale"].strip().split(',')
+            scale_list = [int(n) for n in scale_list]
+        else:
+            scale_list = [None]
+
+    params["scale"] = scale_list
+
+    if params["feature"] == "SIFT" and params["sift_mode"] == 1:
+        im_dir_list = params["input"].strip().split(',')
+        params["input"] = im_dir_list
 
     if params["feature"] == "LBP":
         radius_list = params["radius"].strip().split(',')
