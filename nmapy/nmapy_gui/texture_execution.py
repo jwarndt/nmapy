@@ -9,6 +9,7 @@ from ..features.lac import *
 from ..features.mbi import *
 from ..features.lbp import *
 from ..features.sift import *
+from ..features.hist import *
 from .param_check import *
 
 def execute(execution_parameters):
@@ -169,9 +170,22 @@ def __process(execution_parameters_list):
                 out_im_basename = os.path.basename(input_im)[:-4] + "_SIFT_BK" + str(execution_parameters["block"]) + "_SC" + str(execution_parameters["scale"]) + ".tif"
                 execution_parameters["output"] = os.path.join(outdir, out_im_basename)
             sift_feature(execution_parameters["input"],
-                        execution_parameters["block"],
-                        execution_parameters["scale"],
-                        output=execution_parameters["output"])
+                         execution_parameters["block"],
+                         execution_parameters["scale"],
+                         output=execution_parameters["output"])
+        elif execution_parameters["feature"] == "SIFT" and execution_parameters['sift_mode'] == 1:
+            create_gabor_codeword_images(execution_parameters["input"],
+                                         execution_parameters["output"],
+                                         n_clusters=execution_parameters["n_clusters"],
+                                         rand_samp_num=execution_parameters["n_rand_samp"])
+        elif execution_parameters["feature"] == "Gabor" and execution_parameters['gabor_mode'] == 2:
+            if auto_output_naming:
+                out_im_basename = os.path.basename(input_im)[:-4] + "_SIFT_BK" + str(execution_parameters["block"]) + "_SC" + str(execution_parameters["scale"]) + ".tif"
+                execution_parameters["output"] = os.path.join(outdir, out_im_basename)
+            hist_feature(execution_parameters["input"],
+                         execution_parameters["block"],
+                         execution_parameters["scale"],
+                         output=execution_parameters["output"])
         
         tot_sec = time.time() - s
         minutes = int(tot_sec // 60)

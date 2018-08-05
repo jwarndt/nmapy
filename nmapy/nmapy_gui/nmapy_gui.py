@@ -51,7 +51,9 @@ class App:
         self.sift_mode_value = IntVar()
         self.n_cluster_entry = IntVar()
         self.n_rand_samp_entry = IntVar()
-        
+        # Gabor
+        self.gabor_processing_value = IntVar()
+        self.gabor_bovw_mode = IntVar()
 
         # sampling parameters
         self.st = StringVar()
@@ -306,11 +308,27 @@ class App:
 
         if self.sf.get() == "SIFT":
             self.mode_label = Label(self.texture_tab, text="Mode")
-            self.mode_label.grid(row=3, column=0, ipadx=10, sticky="W")
+            self.mode_label.grid(row=3, column=0, padx=10, sticky="W")
             self.rad1 = Radiobutton(self.texture_tab, text="Create Codeword Images", variable=self.sift_mode_value, value=1, command=self.set_sift_params)
             self.rad2 = Radiobutton(self.texture_tab, text="Create SIFT Block/Scale Features", variable=self.sift_mode_value, value=2, command=self.set_sift_params)
-            self.rad1.grid(row=4, column=0, ipadx=10, sticky="W")
-            self.rad2.grid(row=5, column=0, ipadx=10, sticky="W")
+            self.rad1.grid(row=4, column=0, padx=10, sticky="W")
+            self.rad2.grid(row=5, column=0, padx=10, sticky="W")
+
+        if self.sf.get() == "Gabor Filters":
+            self.gabor_output_type = Label(self.texture_tab, text="Output descriptor type")
+            self.gabor_output_type.grid(row=3, column=0, padx=10, sticky="W")
+            self.rad1 = Radiobutton(self.texture_tab, text="Mean and Variance of Gabor Filter Responses", variable=self.gabor_processing_value, value=1, command=self.set_gabor_params)
+            self.rad2 = Radiobutton(self.texture_tab, text="Bag of Visual Words", variable=self.gabor_processing_value, value=2, command=self.set_gabor_params)
+            self.rad1.grid(row=4, column=0, padx=10, sticky="W")
+            self.rad2.grid(row=5, column=0, padx=10, sticky="W")
+
+            # self.mode_label = Label(self.texture_tab, text="Mode")
+            # self.mode_label.grid(row=3, column=0, ipadx=10, sticky="W")
+            # self.rad1 = Radiobutton(self.texture_tab, text="Create Codeword Images", variable=self.sift_mode_value, value=1, command=self.set_sift_params)
+            # self.rad2 = Radiobutton(self.texture_tab, text="Create SIFT Block/Scale Features", variable=self.sift_mode_value, value=2, command=self.set_sift_params)
+            # self.rad1.grid(row=4, column=0, ipadx=10, sticky="W")
+            # self.rad2.grid(row=5, column=0, ipadx=10, sticky="W")
+
 
         self.job_num.set(1)
         njob_label = Label(self.texture_tab, text="Number of jobs")
@@ -372,6 +390,8 @@ class App:
             self.block_entry.grid(row=11, column=0, padx=10, sticky='W')
             self.scale_entry.grid(row=13, column=0, padx=10, sticky='W')
 
+    def set_gabor_params(self):
+        return None
 
     def set_additional_sample_params(self, callback):
         self.clear_params("sampling")
