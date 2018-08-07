@@ -40,7 +40,7 @@ def create_filter_bank(thetas, sigmas, frequencies):
                 filterbank.append(kernel)
     return filterbank
 
-def local_convolve_filters(image_name, filterbank, output_dir):
+def local_convolve_filters(image_name, output_dir, filterbank):
     # for BOVW feature descriptors
     ds = gdal.Open(image_name)
     image = ds.ReadAsArray()
@@ -56,11 +56,14 @@ def local_convolve_filters(image_name, filterbank, output_dir):
     image = np.moveaxis(image, 0, -1)
     image = skimage.img_as_ubyte(rgb2gray(image))
     
-    out_image = np.zeros(shape=(len(filterbank), image.shape[0], image.shape[1]), dtype=np.double)
+    #out_image = np.zeros(shape=(len(filterbank), image.shape[0], image.shape[1]), dtype=np.float32)
+    out_image = []
     for k, kernel in enumerate(filterbank):
         filtered = ndi.convolve(image, kernel, mode='wrap')
-        out_image[k] = filtered
-    
+        # out_image[k] = filtered.astype(np.float32)
+        out_image.append(np.array([filtered.astype(np.float32)]))
+        filtered = None
+        print("done with kernel: ", str(k))
     output = os.path.join(outdir, os.path.basename(image_name)[-4:] + "_gabor_feat_vecs.tif")
     write_geotiff(output, out_image, out_geotran, out_srs_wkt)
     return out_image
@@ -164,10 +167,11 @@ def create_gabor_codeword_images(image_dirs, out_gabor_dir, n_clusters=32, rand_
     
     image_names = []
     for i in image_dirs:
-        image_names = [os.path.join(i, n) for n in os.listdir(i)]
+        image_names.extend([os.path.join(i, n) for n in os.listdir(i) if n[-4:] == ".tif"])
     
     # easily parallelized
-    local_convolve_filters(im_filename, out_gabor_dir, bank)
+    for im_filename in image_names:
+        local_convolve_filters(im_filename, out_gabor_dir, bank)
     
     # don't parallelize
     create_gabor_codebook(out_gabor_dir, n_clusters=n_clusters, rand_samp_num=rand_samp_num)
